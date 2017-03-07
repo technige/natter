@@ -11,6 +11,18 @@ import static org.neo4j.driver.v1.Values.parameters;
 
 public class Person
 {
+    private final static String COUNT_PEOPLE = ("" +
+            "MATCH (a:Person) " +
+            "RETURN count(a)"
+    );
+    private final static String MATCH_PERSON = ("" +
+            "MATCH (a:Person) WHERE a.email = $email " +
+            "RETURN a.name AS name, a.luck AS luck"
+    );
+    private final static String MATCH_RANDOM_PERSON = ("" +
+            "MATCH (a:Person) " +
+            "RETURN a.email AS email, a.name AS name, a.luck AS luck ORDER BY rand() LIMIT 1"
+    );
     private final static String MERGE_PERSON = ("" +
             "MERGE (a:Person {email: $email}) " +
             "SET a.name = $name, a.luck = $luck " +
@@ -23,18 +35,12 @@ public class Person
             "MERGE (a)-[ab:FOLLOWS]->(b) " +
             "RETURN id(ab)"
     );
-    private final static String MATCH_PERSON = ("" +
-            "MATCH (a:Person) WHERE a.email = $email " +
-            "RETURN a.name AS name, a.luck AS luck"
-    );
-    private final static String MATCH_RANDOM_PERSON = ("" +
-            "MATCH (a:Person) " +
-            "RETURN a.email AS email, a.name AS name, a.luck AS luck ORDER BY rand() LIMIT 1"
-    );
-    private final static String COUNT_PEOPLE = ("" +
-            "MATCH (a:Person) " +
-            "RETURN count(a)"
-    );
+
+    public static long count(Transaction tx)
+    {
+        StatementResult result = tx.run(COUNT_PEOPLE);
+        return result.single().get(0).asLong();
+    }
 
     public static Person load(Transaction tx, String email)
     {
@@ -48,12 +54,6 @@ public class Person
         StatementResult result = tx.run(MATCH_RANDOM_PERSON);
         Record record = result.single();
         return new Person(record.get("email").asString(), record.get("name").asString(), record.get("luck").asInt());
-    }
-
-    public static long count(Transaction tx)
-    {
-        StatementResult result = tx.run(COUNT_PEOPLE);
-        return result.single().get(0).asLong();
     }
 
     private final String email;
@@ -107,14 +107,16 @@ public class Person
     {
         StatementResult result = tx.run(MERGE_PERSON, parameters("email", email, "name", name, "luck", luck));
         tx.success();  // TODO: make this implicit
-        return result.single().get(0).asLong();
+        Record record = result.single();
+        return record.get(0).asLong();
     }
 
-    public long follow(Transaction tx, Person person)
+    public long follow(Transaction tx, Person other)
     {
-        StatementResult result = tx.run(MERGE_FOLLOW, parameters("follower_email", email, "followed_email", person.email));
+        StatementResult result = tx.run(MERGE_FOLLOW, parameters("follower_email", email, "followed_email", other.email));
         tx.success();  // TODO: make this implicit
-        return result.single().get(0).asLong();
+        Record record = result.single();
+        return record.get(0).asLong();
     }
 
     public Message write(String text)

@@ -19,23 +19,29 @@ public class SocialNetwork implements AutoCloseable
         driver.close();
     }
 
+    public long countUsers()
+    {
+        try (Session session = driver.session())
+        {
+            return session.readTransaction(Person::count);
+        }
+    }
+
     public long addUser(Person user)
     {
+        System.out.println(format("Adding user %s", user));
         try (Session session = driver.session())
         {
             return session.writeTransaction(user::save);
         }
-        finally
-        {
-            System.out.println(format("Added user %s", user));
-        }
     }
 
-    public Person getUserByEmail(String email)
+    public long follow(Person a, Person b)
     {
+        System.out.println(format("%s followed %s", a.name(), b.name()));
         try (Session session = driver.session())
         {
-            return session.readTransaction((tx) -> Person.load(tx, email));
+            return session.writeTransaction((tx) -> a.follow(tx, b));
         }
     }
 
@@ -47,22 +53,6 @@ public class SocialNetwork implements AutoCloseable
         }
     }
 
-    public Message getRandomMessage()
-    {
-        try (Session session = driver.session())
-        {
-            return session.readTransaction(Message::loadRandom);
-        }
-    }
-
-    public long countUsers()
-    {
-        try (Session session = driver.session())
-        {
-            return session.readTransaction(Person::count);
-        }
-    }
-
     public long countMessages()
     {
         try (Session session = driver.session())
@@ -71,27 +61,20 @@ public class SocialNetwork implements AutoCloseable
         }
     }
 
-    public long follow(Person a, Person b)
+    public Message getRandomMessage()
     {
         try (Session session = driver.session())
         {
-            return session.writeTransaction((tx) -> a.follow(tx, b));
-        }
-        finally
-        {
-            System.out.println(format("%s followed %s", a.name(), b.name()));
+            return session.readTransaction(Message::loadRandom);
         }
     }
 
     public long postMessage(Message message)
     {
+        System.out.println(format("Posting a message from %s", message.author().name()));
         try (Session session = driver.session())
         {
             return session.writeTransaction(message::save);
-        }
-        finally
-        {
-            System.out.println(format("%s wrote a message", message.author().name()));
         }
     }
 

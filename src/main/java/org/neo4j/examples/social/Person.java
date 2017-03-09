@@ -106,7 +106,6 @@ public class Person
     public long save(Transaction tx)
     {
         StatementResult result = tx.run(MERGE_PERSON, parameters("email", email, "name", name, "luck", luck));
-        tx.success();  // TODO: make this implicit
         Record record = result.single();
         return record.get(0).asLong();
     }
@@ -114,7 +113,6 @@ public class Person
     public long follow(Transaction tx, Person other)
     {
         StatementResult result = tx.run(MERGE_FOLLOW, parameters("follower_email", email, "followed_email", other.email));
-        tx.success();  // TODO: make this implicit
         Record record = result.single();
         return record.get(0).asLong();
     }

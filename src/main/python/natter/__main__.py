@@ -6,7 +6,7 @@ from .person import Person
 from .social import SocialNetwork
 
 
-def main():
+def simulate():
     uri = "bolt://localhost:7687"
     auth = ("neo4j", "password")
     with SocialNetwork(uri, auth) as network:
@@ -14,4 +14,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    simulate()

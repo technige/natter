@@ -100,7 +100,6 @@ public class Message
         }
         if (result.hasNext())
         {
-            tx.success();
             Record record = result.single();
             return record.get(0).asLong();
         }

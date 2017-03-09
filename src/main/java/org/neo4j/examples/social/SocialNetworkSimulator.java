@@ -2,6 +2,7 @@ package org.neo4j.examples.social;
 
 import org.neo4j.driver.v1.AuthToken;
 import org.neo4j.driver.v1.AuthTokens;
+import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
 
 public class SocialNetworkSimulator implements AutoCloseable
 {
@@ -76,8 +77,14 @@ public class SocialNetworkSimulator implements AutoCloseable
                     simulator.turn();
                     Thread.sleep(100);
                 }
+                catch (ServiceUnavailableException ex)
+                {
+                    System.err.println("The database service has disappeared! Take action!");
+                    done = true;
+                }
                 catch (InterruptedException ex)
                 {
+                    System.err.println("Someone pressed Ctrl+C. Bye bye!");
                     done = true;
                 }
             }
